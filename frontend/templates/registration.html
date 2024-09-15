@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registration page{% endblock %}
+
+
+{% block link %}
+<link rel="stylesheet" href="{% static 'css/registration.css' %}">
+      
+{% endblock link %}
+
+{% block style %}
+    
+{% endblock style %}
+    
+{% block content2 %}
+
+<div class="d-flex justify-content-center mt-4">
+    <h1>Registration</h1>
+</div>
+
+
+<div class="container alert alert-warning alert-dismissible fade show" style="display:none" role="alert" id="message">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div class="main-w3layouts wrapper">
+    <div class="main-agileinfo">
+        <div class="agileits-top">
+            <form action="#" method="post" id="registrationForm" onsubmit="scrollToTop(); return false;">
+                <input class="text" type="text" name="Username" placeholder="Username" id="username" required="">
+                <input class="text email" type="email" name="email" placeholder="Email" id="email" required="">
+                <select id="roleSelect" class="text" aria-label="Default select example">
+                    <option selected>Open this select menu</option>
+                </select>
+                <input class="text" type="password" name="password" placeholder="Password" id="password1" required="">
+                <input class="text w3lpass" type="password" name="password" placeholder="Confirm Password" id="password2" required="">
+                <div class="wthree-text">
+                    <label class="anim">
+                        <input type="checkbox" class="checkbox" required="">
+                        <span>I Agree To The Terms & Conditions</span>
+                    </label>
+                    <div class="clear"> </div>
+                </div>
+                <input type="submit" value="SIGNUP" id="registerBtn" >
+            </form>
+            <p>Don't have an Account? <a href="#"> Login Now!</a></p>
+        </div>
+    </div>
+    <!-- //copyright -->
+    <ul class="colorlib-bubbles">
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+{% endblock  %}
+
+
+{% block script %}
+    <script>
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0, 
+                behavior: 'smooth' // Smooth scrolling to top
+            });
+        }
+
+
+
+        async function fetchRoleData() {
+          const queryRoles = `
+            query {
+              allRole {
+                name
+                description
+              }
+            }
+          `;
+          const url = `/graphql/?query=${encodeURIComponent(queryRoles)}`;
+      
+          try {
+            const responseRoles = await axios.get(url, {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+      
+            const roles = responseRoles.data.data.allRole;
+            const roleSelect = document.getElementById('roleSelect');
+            roleSelect.innerHTML = '';
+      
+           
+            roles.forEach(role => {
+              const option = document.createElement('option');
+              option.value = role.name; 
+              option.textContent = role.name;
+              roleSelect.appendChild(option);
+            });
+      
+           
+            document.getElementById('registerBtn').disabled = false;
+      
+          } catch (error) {
+            console.error('Error fetching role data:', error);
+            document.getElementById("message").innerHTML = `<p style="color:red;">Failed to load roles. Please try again.</p>`;
+          }
+        }
+      
+        async function registerUser(username, email, role, password1, password2) {
+          const queryRegister = `
+            mutation {
+              register(username: "${username}", email: "${email}", role: "${role}", password1: "${password1}", password2: "${password2}") {
+                userInstance {
+                  username
+                  email
+                }
+                message
+              }
+            }
+          `;
+      
+          try {
+            const responseRegister = await fetch('http://127.0.0.1:8000/graphql/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ query: queryRegister }),
+            });
+      
+            const result = await responseRegister.json();
+            return result.data.register;
+          } catch (error) {
+            console.error('Error during registration:', error);
+            document.getElementById("message").innerHTML = `<p style="color:red;">Registration failed. Please try again.</p>`;
+          }
+        }
+      
+        document.addEventListener('DOMContentLoaded', async function() {
+          // Step 1: Fetch the roles first
+          await fetchRoleData();
+      
+          // Step 2: Handle registration after roles have been fetched
+          document.getElementById("registrationForm").addEventListener("submit", async (event) => {
+            event.preventDefault(); // Prevent form from reloading the page.
+      
+            const username = document.getElementById('username').value;
+            const email = document.getElementById("email").value;
+            const role = document.getElementById("roleSelect").value;
+            console.log("role----",role);
+            
+            const password1 = document.getElementById("password1").value;
+            const password2 = document.getElementById("password2").value;
+      
+            const result = await registerUser(username, email, role, password1, password2);
+      
+            const messageDiv = document.getElementById("message");
+            if (result) {
+              messageDiv.innerHTML = `<p style="color:green;">Registration successful: <strong>${result.userInstance.username}</strong></p>`;
+            } else {
+              messageDiv.innerHTML = `<p style="color:red;">Registration failed. Please try again.</p>`;
+            }
+            messageDiv.style.display = 'block';
+            document.getElementById("registrationForm").reset(); 
+
+            
+            
+
+          });
+        });
+        </script>
+
+
+{% endblock %}

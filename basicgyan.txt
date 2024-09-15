@@ -1,0 +1,5 @@
+first come and register ,than login
+when login u get access token as well as refresh token
+when access token is expire 
+hit refresh token api to get new access token
+when hit any api than need authentication place access token in header Authorization:Jwt <access token>

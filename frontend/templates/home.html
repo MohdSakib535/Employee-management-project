@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block style %}
+<style>
+    #img{
+        height:60vh;
+    }
+
+    .wrapper {
+        display: flex;
+        width: 90%;
+        background-color:#DAA520;
+      
+    }
+    .m9:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 45vh;;  
+        opacity: 0.6;
+        background-image: url("/static/image/img5.jpg");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        width:100%;
+        border-radius:152px 0px 152px 0px;
+      }
+
+      .card {
+        width: 280px;
+        height: 360px;
+        border-radius: 15px;
+        padding: 1.5rem;
+        background: white;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        transition: 0.4s ease-out;
+        box-shadow: 0px 7px 10px rgba(0, 0, 0, 0.5);
+      }
+      .card:hover {
+        transform: translateY(20px);
+      }
+      
+      .card:hover .info {
+        opacity: 1;
+        transform: translateY(0px);
+      }
+     
+      
+      .card img {
+        width: 100%;
+        height: 100%;
+        /* -o-object-fit: cover; */
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 15px;
+      }
+      .card .info {
+        position: relative;
+       
+        opacity: 0;
+        transform: translateY(30px);
+        transition: 0.5s;
+      }
+      .card .info h1 {
+        margin: 0px;
+      }
+      .card .info p {
+        letter-spacing: 1px;
+        font-size: 15px;
+        margin-top: 8px;
+      }
+      .card .info button {
+        padding: 0.6rem;
+        outline: none;
+        border: none;
+        border-radius: 3px;
+        background: white;
+        color: black;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.4s ease;
+      }
+      .card .info button:hover {
+        background: dodgerblue;
+        color: white;
+      } 
+
+        .d1{
+        width:100vw;
+        height:200vh;
+        visibility:visible;
+         
+      }  
+      .icon{
+        position:relative;
+        top:20rem;
+        left:45rem;
+        font-size:20px;
+        
+      }
+      .icon img{
+        width:5rem;
+      }
+
+
+      
+</style>
+    
+{% endblock style %}
+    
+{% block content1 %}
+<div id="carouselExampleIndicators" class="carousel slide m1" data-ride="carousel"></div>
+    <ol class="carousel-indicators">
+      <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+      <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+      <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+    </ol>
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img class="d-block w-100" src="/static/image/img1.jpg" id='img' alt="First slide">
+      </div>
+      <div class="carousel-caption d-none d-md-block">
+        <h5>...</h5>
+        <p>...</p>
+      </div>
+      <div class="carousel-item">
+        <img class="d-block w-100" src="/static/image/img2.jpg" id='img' alt="Second slide">
+      </div>
+      <div class="carousel-caption d-none d-md-block">
+        <h5>lorem ipsum</h5>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sit obcaecati sed optio? Quia, aut soluta. Quisquam possimus necessitatibus nobis obcaecati et! Velit, adipisci unde. Cumque, omnis neque. Nobis, quisquam optio.</p>
+      </div>
+      <div class="carousel-item">
+        <img class="d-block w-100" src="/static/images/img3.jpg"  id='img' alt="Third slide">
+      </div>
+      <div class="carousel-caption d-none d-md-block">
+        <h5>...</h5>
+        <p>...</p>
+      </div>
+    </div>
+    
+</div>
+
+
+<div class='container w-50 bg-info mt-5 rounded-top'>
+    <div class='d-flex justify-content-center'><h3 class='p-2'>Various Category of employees </h3></div>
+   
+</div>
+
+
+<div class="container-fluid wrapper  mt-5 d-flex justify-content-center">
+    <div class="card"><img src="https://images.unsplash.com/photo-1477666250292-1419fac4c25c?auto=format&amp;fit=crop&amp;w=667&amp;q=80&amp;ixid=dW5zcGxhc2guY29tOzs7Ozs%3D"/>
+        <div class="info">
+        <h1>Admin</h1>
+        <p>Lorem Ipsum is simply dummy text from the printing and typeseting industry</p>
+        <button>Read More</button>
+        </div>
+    </div>
+    <div class="card"><img src="https://images.unsplash.com/photo-1425342605259-25d80e320565?auto=format&amp;fit=crop&amp;w=750&amp;q=80&amp;ixid=dW5zcGxhc2guY29tOzs7Ozs%3D"/>
+        <div class="info">
+        <h1>Manager</h1>
+        <p>Lorem Ipsum is simply dummy text from the printing and typeseting industry</p>
+        <button>Read More</button>
+        </div>
+    </div>
+    <div class="card"><img src="https://images.unsplash.com/photo-1503249023995-51b0f3778ccf?auto=format&amp;fit=crop&amp;w=311&amp;q=80&amp;ixid=dW5zcGxhc2guY29tOzs7Ozs%3D"/>
+        <div class="info">
+        <h1>Employee</h1>
+        <p>Lorem Ipsum is simply dummy text from the printing and typeseting industry</p>
+        <button>Read More</button>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock  %} 
+
+
+{% block script %} {% endblock %}
+

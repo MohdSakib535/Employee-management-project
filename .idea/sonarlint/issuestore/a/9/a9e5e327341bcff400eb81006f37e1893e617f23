@@ -1,0 +1,15 @@
+
+Ypython:S5720"<Rename "root" to "self" or add the missing "self" parameter.(£à‹àûÿÿÿÿ
+Upython:S112%">Replace this generic exception class with a more specific one.(±ûíÅ
+Tpython:S5720G"<Rename "root" to "self" or add the missing "self" parameter.(ª„Ýí
+5python:S125Z"Remove this commented out code.(ßÆœ
+Zpython:S5720—"<Rename "root" to "self" or add the missing "self" parameter.(£à‹àûÿÿÿÿ
+Vpython:S112¡">Replace this generic exception class with a more specific one.(õ’É‰
+Upython:S5720Ã"<Rename "root" to "self" or add the missing "self" parameter.(ª„Ýí
+qpython:S117Ü"ZRename this local variable "role_Data" to match the regular expression ^[_a-z][a-z0-9_]*$.(Ý‚×
+<python:S125æ"Remove this commented out code.(’Øž´øÿÿÿÿ
+7python:S125ë"Remove this commented out code.(ªíæŸ
+7python:S125ñ"Remove this commented out code.(¨žåè
+7python:S125"Remove this commented out code.(Ï³ô
+Cpython:S1481°"*Remove the unused local variable "result".(ŸØñ¸
+[python:S112´">Replace this generic exception class with a more specific one.(†ÌòÂøÿÿÿÿ
