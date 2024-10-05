@@ -27,14 +27,22 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('graphql/', csrf_exempt(views.CustomGraphQLView.as_view(graphiql=True, schema=schema))),
+    path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema))),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
 
     #frontend Api
     path("",fe.Home,name='home'),
     path("d",fe.Dashboard,name='dashboard'),
     path("r",fe.consume_registration,name='registration'),
-    path('l',fe.consume_login,name='login')
+    path('l',fe.consume_login,name='login'),
+    path('ec',fe.Employee_creation,name='create_employee'),
+    path('eu/<int:id>/',fe.Updating_employee,name='update_employee'),
+
+    path('a',fe.Attendance_data,name='attendance'),
+
+    path('de',fe.role_Data,name='role'),
+    path('ur/<int:id>/',fe.update_Role,name='update_role'),
+    
 
 
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

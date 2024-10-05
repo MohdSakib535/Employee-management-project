@@ -10,7 +10,7 @@ def consume_registration(request):
 
 def consume_login(request):
     context={}
-    return render(request,'login2.html',context)
+    return render(request,'login.html',context)
 
 
 def Dashboard(request):
@@ -20,3 +20,20 @@ def Dashboard(request):
 def Home(request):
     return render(request,'home.html')
 
+
+def Employee_creation(request):
+    return render(request,'creatingEmployee.html')
+
+def Updating_employee(request,id):
+    context={'employee_id':id}
+    return render(request,'updatingEmployee.html',context)
+
+def role_Data(request):
+    return render(request,'role.html')
+
+def update_Role(request,id):
+    print('id--',id)
+    return render(request,'updateRole.html',{'employee_id': id})
+
+def Attendance_data(request):
+    return render(request,'attendance.html')

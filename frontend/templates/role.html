@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Role Data{% endblock %}
+
+
+{% block link %}
+      
+{% endblock link %}
+
+{% block style %}
+    
+{% endblock style %}
+    
+{% block content2 %}
+
+<div class="text-center m-4" style="text-decoration: underline;"><h3>Role Management</h3></div>
+
+<div class="row">
+    <div class="col-6">
+        <div class=" text-center m-3"><h4>Add Role</h4></div>
+        <form action="#" class="m-4 p-4 border" id="role_form">
+            <div class="mb-3">
+                <label for="roleName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="roleName" >
+            </div>
+            <div class="mb-3">
+                <label for="roleDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="roleDescription" rows="3"></textarea>
+            </div>
+            <button class="btn btn-info" id="role_submit">submit</button>
+        </form>
+        
+        
+        
+        
+    </div>
+    <div class="col-6">
+        <div class=" text-center m-3"><h3>List Role</h3></div>
+        <table id="roleTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be added here dynamically using JavaScript -->
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
+
+
+
+
+
+
+{% endblock  %}
+
+
+{% block script %}
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+      
+        // Fetch the list of roles when the page loads
+        fetchRoles();
+    
+        // Function to fetch the roles and populate the table
+        function fetchRoles() {
+            const query = `
+                query{
+                allRole{
+                id
+                name
+                description
+                }
+                }
+            `;
+            const url = `/graphql/?query=${encodeURIComponent(query)}`;
+            
+            axios.get(url,{
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            })
+            .then(response => {
+                
+                const roles = response.data.data.allRole;
+                
+                const tbody = document.querySelector("#roleTable tbody");
+                tbody.innerHTML = ""; 
+                roles.forEach(role => {
+                    const row = document.createElement("tr");
+
+                    // Create columns for the role data
+                    const idCell = document.createElement("td");
+                    idCell.textContent = role.id; // Assuming you have a role ID
+                    row.appendChild(idCell);
+
+                    const nameCell = document.createElement("td");
+                    nameCell.textContent = role.name;
+                    row.appendChild(nameCell);
+
+                    const descriptionCell = document.createElement("td");
+                    descriptionCell.textContent = role.description;
+                    row.appendChild(descriptionCell);
+
+                    const actionCell = document.createElement("td");
+                    
+                    // Create the edit button
+                    const editButton = document.createElement("a");
+                    
+                    editButton.href =`/ur/${role.id}/`;  
+                    editButton.className = "btn btn-sm btn-primary";
+                    editButton.textContent = "Edit";
+                    actionCell.appendChild(editButton);
+
+                    row.appendChild(actionCell);
+
+                    // Append the row to the table
+                    document.querySelector("#roleTable tbody").appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching roles:", error);
+            });
+        }
+
+    })
+    
+    // Function to create a new role
+    document.getElementById("role_form").addEventListener("submit", function(event) {
+           event.preventDefault(); 
+            const roleName = document.getElementById("roleName").value;
+            const roleDescription = document.getElementById("roleDescription").value;
+    
+            const mutation = `
+                mutation {
+                    CreateRole(name: "${roleName}", description: "${roleDescription}") {
+                        roleDataa {
+                            name
+                            description
+                        }
+                        message
+                    }
+                }
+            `;
+    
+            axios.post("/graphql/", {
+                query: mutation
+            }, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                    
+                    // "Accept": "application/json"
+                }
+            })
+            .then(response => {
+                const createRoleResponse = response.data.data.CreateRole.roleDataa;
+                
+                if (createRoleResponse) {
+                    const tbody = document.querySelector("#roleTable tbody");
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${createRoleResponse.name}</td>
+                        <td>${createRoleResponse.description}</td>
+                        <td><button class="delete-btn btn btn-danger" data-name="${createRoleResponse.name}">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                    document.getElementById("roleName").value = '';
+                    document.getElementById("roleDescription").value = '';
+                } else {
+                    alert("Error creating role");
+                }
+            })
+            .catch(error => {
+                console.error("Error creating role:", error);
+            });
+        });
+
+        function getCSRFToken() {
+            const name = "csrftoken";
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + "=")) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+       
+    
+    </script>
+
+{% endblock %}

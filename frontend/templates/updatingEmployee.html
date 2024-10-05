@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% block title %}Update Employee{% endblock %}
+
+{% block style %}
+<!-- Custom Styles -->
+<style>
+    .employment-detail {
+        border: 1px solid #ced4da;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        position: relative;
+        background-color: #f8f9fa;
+    }
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .btn-add {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock style %}
+
+{% block content1 %}
+<div class="text-center m-4"><h2>Update Employee</h2></div>
+
+<div class="container">
+    <form class="row g-3" id="update_employee_form">
+        <!-- Employee ID (Read-Only) -->
+        <div class="col-md-6">
+            <label for="employeeId" class="form-label">Employee ID</label>
+            <input type="text" class="form-control" id="employeeId" name="employeeId" disabled>
+        </div>
+
+        <!-- Department Selection -->
+        <div class="col-md-6">
+            <label for="departmentSelect" class="form-label">Department</label>
+            <select name="department" id="departmentSelect" class="form-select" required>
+                <option value="">Loading departments...</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label for="dob" class="form-label">DOB</label>
+            <input name="dob" class="form-control" id="dob" type="date">
+        </div>
+
+        <div class="col-md-6">
+            <label for="phone" class="form-label">Phone No.</label>
+            <input name="phone" class="form-control" id="phone" type="text">
+        </div>
+
+        <div class="col-12">
+            <label for="inputAddress" class="form-label">Address</label>
+            <input name="address" type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+        </div>
+
+        
+        <hr>
+
+        <h3 class="text-center">Employment Details - 
+            <button type="button" class="btn btn-success btn-sm btn-add" id="add-employment">Add</button>
+        </h3>
+
+        <!-- Employment Details Container -->
+        <div id="employment-details-container">
+            <!-- Employment Details will be dynamically inserted here -->
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Update Employee</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<!-- Include Axios from CDN -->
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    
+    
+    const employeeId = "{{ employee_id }}"; // Passed from Django view
+    let employmentIndex = 0; // Tracks the number of employment detail forms
+    console.log("employee id-----",employeeId);
+
+    // Initialize the form by fetching departments and employee data
+    initializeForm();
+
+    // Event listener for adding new employment detail
+    document.getElementById('add-employment').addEventListener('click', function() {
+        addEmploymentDetail();
+    });
+
+    // Event listener for form submission
+    document.getElementById('update_employee_form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        submitUpdatedEmployee(employeeId);
+    });
+
+    /**
+     * Initializes the form by fetching departments and existing employee data
+     */
+    async function initializeForm() {
+        try {
+            await Promise.all([fetchDepartments(), fetchEmployeeData(employeeId)]);
+            console.log('Form initialized successfully.');
+        } catch (error) {
+            console.error('Error initializing form:', error);
+            alert('Failed to load employee data. Please try again.');
+        }
+    }
+
+    /**
+     * Fetches all departments and populates the department select dropdown
+     */
+    async function fetchDepartments() {
+        const query = `query { allDepartment { id name } }`;
+        try {
+            const response = await axios.get(`/graphql/?query=${encodeURIComponent(query)}`, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const departments = response.data.data.allDepartment;
+            const deptSelect = document.getElementById('departmentSelect');
+            deptSelect.innerHTML = '<option value="">Select Department</option>';
+            departments.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name;
+                deptSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error fetching departments:', error);
+            alert('Failed to load departments.');
+        }
+    }
+
+    /**
+     * Fetches existing employee data and populates the form
+     * @param {number} id - Employee ID
+     */
+    async function fetchEmployeeData(id) {
+        const query = `
+            query {
+                getParticularEmployee(id: ${id}) {
+                    employeeId
+                    address
+                    dateOfBirth
+                    phoneNumber
+                    department {
+                        id
+                        name
+                    }
+                    employmentDetails {
+                        id
+                        startDate
+                        dateOfResignation
+                        jobTitle
+                        supervisor
+                        employmentType
+                        employmentStatus
+                        officeLocation
+                        reason
+                    }
+                }
+            }
+        `;
+        try {
+            const response = await axios.get(`/graphql/?query=${encodeURIComponent(query)}`, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const employee = response.data.data.getParticularEmployee;
+            console.log("-----",employee);
+            
+            populateMainDetails(employee);
+            populateEmploymentDetails(employee.employmentDetails);
+        } catch (error) {
+            console.error('Error fetching employee data:', error);
+            alert('Failed to load employee details.');
+        }
+    }
+
+    /**
+     * Populates the main employee details in the form
+     * @param {object} employee - Employee data
+     */
+    function populateMainDetails(employee) {
+        document.getElementById('employeeId').value = employee.employeeId;
+        document.getElementById('departmentSelect').value = employee.department.id;
+
+        document.getElementById('dob').value = employee.dateOfBirth;
+        document.getElementById('phone').value = employee.phoneNumber;
+        document.getElementById('inputAddress').value = employee.address;
+    }
+
+    /**
+     * Populates the employment details in the form
+     * @param {Array} details - Array of employment detail objects
+     */
+    function populateEmploymentDetails(details) {
+        const container = document.getElementById('employment-details-container');
+        container.innerHTML = ''; // Clear existing details
+        details.forEach(detail => {
+            addEmploymentDetail(detail, detail.id);
+        });
+    }
+
+    /**
+     * Adds a new employment detail section to the form
+     * @param {object} detail - Employment detail data (optional)
+     * @param {number} detailId - Employment detail ID (optional)
+     */
+    function addEmploymentDetail(detail = {}, detailId = null) {
+        const container = document.getElementById('employment-details-container');
+        const index = employmentIndex++;
+        const employmentDiv = document.createElement('div');
+        employmentDiv.classList.add('employment-detail');
+        employmentDiv.setAttribute('data-index', index);
+        if (detailId) {
+            employmentDiv.setAttribute('data-detail-id', detailId);
+        }
+
+        employmentDiv.innerHTML = `
+            <button type="button" class="btn btn-danger btn-sm close-btn">Remove</button>
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <label for="start-date-${index}" class="form-label">Start Date</label>
+                    <input name="employment_details[${index}][start_date]" class="form-control start-date" type="date" id="start-date-${index}" value="${detail.startDate || ''}" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="end-date-${index}" class="form-label">End Date</label>
+                    <input name="employment_details[${index}][end_date]" class="form-control end-date" type="date" id="end-date-${index}" value="${detail.dateOfResignation || ''}" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="jobtitle-${index}" class="form-label">Job Title</label>
+                    <input name="employment_details[${index}][job_title]" class="form-control jobtitle" type="text" id="jobtitle-${index}" value="${detail.jobTitle || ''}" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="employmenttype-${index}" class="form-label">Employment Type</label>
+                    <select name="employment_details[${index}][employment_type]" class="form-select employmenttype" id="employmenttype-${index}" required>
+                        <option value="">Select</option>
+                        <option value="contract" ${detail.employmentType === 'CONTRACT' ? 'selected' : ''}>Contract</option>
+                        <option value="part-time" ${detail.employmentType === 'PART_TIME' ? 'selected' : ''}>Part-Time</option>
+                        <option value="full-time" ${detail.employmentType === 'FULL_TIME' ? 'selected' : ''}>Full-Time</option>
+                        <option value="Internship" ${detail.employmentType === 'INTERNSHIP' ? 'selected' : ''}>Internship</option>
+                    </select>
+                </div>
+
+
+                <div class="col-md-3">
+                    <label for="supervisor-${index}" class="form-label">Supervisor</label>
+                    <input name="employment_details[${index}][supervisor]" class="form-control supervisor" type="text" id="jobtitle-${index}" value="${detail.supervisor || ''}" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="employmentstatus-${index}" class="form-label">Employment Status</label>
+                    <select name="employment_details[${index}][employment_status]" class="form-select empstatus" id="employmentstatus-${index}" required>
+                        <option value="">Select</option>
+                        <option value="Resignation" ${detail.employmentStatus === 'RESIGNATION' ? 'selected' : ''}>Resignation</option>
+                        <option value="Active" ${detail.employmentStatus === 'ACTIVE' ? 'selected' : ''}>Active</option>
+                    </select>
+                </div>
+
+                 <div class="col-md-3">
+                <label for="officelocation-${index}" class="form-label">Office Location</label>
+                <input name="employment_details[${index}][officelocation]" class="form-control officelocation" type="text" id="officelocation-${index}" value="${detail.officeLocation || ''}" required>
+            </div>
+
+            <div class="col-md-3">
+                <label for="reason-${index}" class="form-label">Reason</label>
+                <input name="employment_details[${index}][reason]" class="form-control reason" type="text" id="reason-${index}" value="${detail.reason || ''}" required>
+            </div>
+            </div>
+
+           
+
+            
+        `;
+
+        container.appendChild(employmentDiv);
+
+        // Add event listener to the remove button
+        employmentDiv.querySelector('.close-btn').addEventListener('click', function() {
+            employmentDiv.remove();
+        });
+    }
+
+    /**
+     * Submits the updated employee data via GraphQL mutation
+     * @param {number} id - Employee ID
+     */
+    async function submitUpdatedEmployee(id) {
+        const department = document.getElementById('departmentSelect').value;
+
+        if (!department) {
+            alert('Please select a department.');
+            return;
+        }
+
+        const employmentDetails = [];
+        const employmentForms = document.querySelectorAll('.employment-detail');
+
+        for (let form of employmentForms) {
+            const detailId = form.getAttribute('data-detail-id');
+            const startDate = form.querySelector('.start-date').value;
+            const jobTitle = form.querySelector('.jobtitle').value;
+            const employmentType = form.querySelector('.employmenttype').value;
+            const employmentStatus = form.querySelector('.empstatus').value;
+
+            if (!startDate || !jobTitle || !employmentType || !employmentStatus) {
+                alert('Please fill in all required fields in employment details.');
+                return;
+            }
+
+            const detail = {
+                startDate: startDate,
+                jobTitle: jobTitle,
+                employmentType: employmentType,
+                employmentStatus: employmentStatus
+            };
+
+            if (detailId) {
+                detail.id = detailId;
+            }
+
+            employmentDetails.push(detail);
+        }
+
+        // Construct the GraphQL mutation
+        let employmentDetailsMutation = employmentDetails.map(detail => {
+            let detailString = `
+                {
+                    startDate: "${detail.startDate}",
+                    jobTitle: "${detail.jobTitle}",
+                    employmentType: "${detail.employmentType}",
+                    employmentStatus: "${detail.employmentStatus}"
+            `;
+            if (detail.id) {
+                detailString += `, id: ${detail.id}`;
+            }
+            detailString += ` }`;
+            return detailString;
+        }).join(',');
+
+        const mutation = `
+            mutation {
+                updateEmployeeAndDetails(id: ${id}, input: {
+                    department: ${department},
+                    employmentDetails: [${employmentDetailsMutation}]
+                }) {
+                    message
+                    employee {
+                        employeeId
+                        department {
+                            name
+                        }
+                    }
+                    employmentDetails {
+                        id
+                        startDate
+                        dateOfResignation
+                        jobTitle
+                        supervisor
+                        employmentType
+                        employmentStatus
+                        officeLocation
+                        reason
+                    }
+                }
+            }
+        `;
+
+        try {
+            const response = await axios.post('/graphql/', {
+                query: mutation
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken() // Include CSRF token if required
+                }
+            });
+
+            if (response.data.errors) {
+                console.error('GraphQL Errors:', response.data.errors);
+                alert('Failed to update employee data. Please check the form and try again.');
+            } else {
+                console.log('Update Successful:', response.data.data.updateEmployeeAndDetails);
+                alert('Employee data updated successfully!');
+                // Optionally, redirect or update the UI accordingly
+                // window.location.href = '/employees/';
+            }
+        } catch (error) {
+            console.error('Submission Error:', error);
+            alert('An error occurred while updating the employee. Please try again.');
+        }
+    }
+
+    /**
+     * Retrieves the CSRF token from cookies
+     * @returns {string|null} - CSRF token or null if not found
+     */
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+        return null;
+    }
+});
+</script>
+{% endblock %}

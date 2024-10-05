@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block style %}
+<style>
+    .employment-detail {
+        border: 1px solid #ced4da;
+        padding: 30px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        position: relative;
+        background-color: #f8f9fa;
+    }
+    .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    .btn-add {
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock style %}
+    
+{% block content1 %}
+<div class="text-center m-4"><h2>Creating Employee</h2></div>
+
+<div class="container">
+    <form class="row g-3" id="employee_data">
+        <!-- Main Employee Details -->
+        <div class="col-md-6">
+            <label for="userSelect" class="form-label">User</label>
+            <select name="user" id="userSelect" class="form-select" aria-label="Default select example">
+                <option selected>Open this select menu</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="department" class="form-label">Department</label>
+            <select name="department" id="department" class="form-select" aria-label="Default select example">
+                <option selected>Open this select menu</option>
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label for="dob" class="form-label">DOB</label>
+            <input name="dob" class="form-control" id="dob" type="date">
+        </div>
+
+        <div class="col-md-6">
+            <label for="phone" class="form-label">Phone No.</label>
+            <input name="phone" class="form-control" id="phone" type="text">
+        </div>
+
+        <div class="col-12">
+            <label for="inputAddress" class="form-label">Address</label>
+            <input name="address" type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+        </div>
+
+        <hr>
+        <h3 class="text-center">Employment Details - <span class="btn btn-success" id="add-form">Add</span></h3>
+
+        <!-- Employment Details Container -->
+        <div id="employment-details-container">
+            <!-- Initial Employment Details (this will be cloned) -->
+            <div class="employment-detail row mb-3">
+                <div class="col-md-3">
+                    <label for="start-date-0" class="form-label">Start Date</label>
+                    <input name="employment_details[0][start_date]" class="form-control start-date" type="date" id="start-date-0">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="end-date-0" class="form-label">End Date</label>
+                    <input name="employment_details[0][end_date]" class="form-control end-date" type="date" id="end-date-0">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="jobtitle-0" class="form-label">Job Title</label>
+                    <input name="employment_details[0][job_title]" class="form-control jobtitle" type="text" id="jobtitle-0">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="employmenttype-0" class="form-label">Employment Type</label>
+                    <select name="employment_details[0][employment_type]" class="form-select employmenttype" id="employmenttype-0" aria-label="Default select example">
+                        <option selected>Open this select menu</option>
+                        <option value="contract">Contract</option>
+                        <option value="part-time">Part-Time</option>
+                        <option value="full-time">Full-Time</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="supervisor-0" class="form-label">Supervisor</label>
+                    <input name="employment_details[0][supervisor]" class="form-control supervisor" type="text" id="supervisor-0">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="empstatus-0" class="form-label">Employment Status</label>
+                    <select name="employment_details[0][employment_status]" class=" empstatus" id="empstatus-0" aria-label="Default select example">
+                        <option selected>Open this select menu</option>
+                        <option value="Resignation">Resignation</option>
+                        <option value="Active">Active</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="office-location-0" class="form-label">Office Location</label>
+                    <input name="employment_details[0][office_location]" type="text" class="form-control office-location" id="office-location-0" placeholder="1234 Main St">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="reason-0" class="form-label">Reason</label>
+                    <input name="employment_details[0][reason]" type="text" class="form-control reason" id="reason-0" placeholder="Reason for Employment">
+                </div>
+
+                <div class="">
+                    <button type="button" class="btn btn-danger close-btn">Remove</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let employmentIndex = 1;
+
+    // Add form clone logic
+    document.getElementById('add-form').addEventListener('click', function() {
+        const container = document.getElementById('employment-details-container');
+        const original = container.querySelector('.employment-detail');
+        const formClone = original.cloneNode(true);
+
+        formClone.querySelectorAll('input, select').forEach(input => {
+            const name = input.getAttribute('name');
+            const id = input.getAttribute('id');
+            const newName = name.replace(/\[\d+\]/, `[${employmentIndex}]`);
+            const newId = id.replace(/-\d+$/, `-${employmentIndex}`);
+            input.setAttribute('name', newName);
+            input.setAttribute('id', newId);
+            if (input.tagName.toLowerCase() === 'input') input.value = '';
+            if (input.tagName.toLowerCase() === 'select') input.selectedIndex = 0;
+        });
+
+        container.appendChild(formClone);
+        addCloseButtonListener(formClone);
+        employmentIndex++;
+    });
+
+    addCloseButtonListener(document.querySelector('.employment-detail'));
+});
+
+function addCloseButtonListener(formElement) {
+    const closeButton = formElement.querySelector('.close-btn');
+    if (closeButton) {
+        closeButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            formElement.remove();
+        });
+    }
+}
+
+async function fetchUserData(){
+    const UserQuery = `query { allUserData {id email } }`;
+    const url = `/graphql/?query=${encodeURIComponent(UserQuery)}`;
+    try {
+        let responseUser = await axios.get(url, { headers: { 'Content-Type': 'application/json' } });
+        let user_dta = responseUser.data.data.allUserData;
+        let userSelect = document.getElementById("userSelect");
+        userSelect.innerHTML = '';
+        user_dta.forEach(dta => {
+            const option = document.createElement('option');
+            option.value = dta.id;
+            option.textContent = dta.email;
+            userSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.log('Error fetching user data:', error);
+    }
+}
+
+async function fetchDepartmentData(){
+    const departmentQuery = `query { allDepartment { id name } }`;
+    const url = `/graphql/?query=${encodeURIComponent(departmentQuery)}`;
+    try {
+        let responseDepart = await axios.get(url, { headers: { 'Content-Type': 'application/json' } });
+        let user_department = responseDepart.data.data.allDepartment;
+        let deptSelect = document.getElementById("department");
+        deptSelect.innerHTML = '';
+        user_department.forEach(dta => {
+            let option = document.createElement('option');
+            option.value = dta.id;
+            option.textContent = dta.name;
+            deptSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.log('Error fetching department data:', error);
+    }
+}
+
+async function submitEmployeeAndDetails() {
+    const user = document.getElementById('userSelect').value;
+    
+    const department = document.getElementById('department').value;
+    
+    const dob = document.getElementById('dob').value|| "none";
+    const phone = document.getElementById('phone').value|| "none";
+    const address = document.getElementById('inputAddress').value|| "none";
+
+    const employmentDetails = [];
+    const employmentForms = document.querySelectorAll('.employment-detail');
+    
+    employmentForms.forEach(form => {
+        const startDate = form.querySelector('.start-date').value|| "none";
+        const jobTitle = form.querySelector('.jobtitle').value|| "none";
+        const employmentType = form.querySelector('.employmenttype').value|| "none";
+        const supervisor = form.querySelector('.supervisor').value|| "none";
+        const officeLocation = form.querySelector('.office-location').value|| "none";
+        const employmentStatus = form.querySelector('.empstatus').value|| "none";
+        const reason = form.querySelector('.reason').value|| "none";
+
+        employmentDetails.push({
+            startDate,
+            jobTitle,
+            employmentType,
+            supervisor,
+            officeLocation,
+            employmentStatus,
+            reason
+        });
+    });
+
+    const mutationQuery = `
+    mutation {
+      createEmployeeAndDetails(input: {
+        user: ${user}
+
+        department: ${department}
+        dateOfBirth: "${dob}"
+        address: "${address}"
+        phoneNumber: "${phone}"
+        employmentDetails: [
+          ${employmentDetails.map(detail => `
+            {
+              startDate: "${detail.startDate}",
+              jobTitle: "${detail.jobTitle}",
+              employmentType: "${detail.employmentType}",
+              supervisor: "${detail.supervisor}",
+              officeLocation: "${detail.officeLocation}",
+              employmentStatus: "${detail.employmentStatus}",
+              reason: "${detail.reason}"
+            }
+          `).join(',')}
+        ]
+      }) {
+        message
+        employee {
+          employeeId
+          user {
+            username
+          }
+        }
+        employmentDetails {
+          employeeData {
+            employeeId
+          }
+          startDate
+          jobTitle
+          employmentStatus
+          reason
+        }
+      }
+    }`;
+
+    try {
+        const response = await axios.post('/graphql/', {
+            query: mutationQuery
+        }, {
+            headers: {
+                'Content-Type': 'application/json',
+                // 'X-CSRFToken': getCSRFToken()
+            }
+        });
+
+        if (response.data.errors) {
+            console.error('GraphQL Error:', response.data.errors);
+            alert('Failed to submit data.');
+        } else {
+            console.log('GraphQL Response:', response.data);
+            alert('Employee and employment details submitted successfully!');
+        }
+    } catch (error) {
+        console.error('Error submitting data:', error);
+        alert('An error occurred while submitting the form.');
+    }
+}
+
+function getCSRFToken() {
+    let cookieValue = null;
+    const name = 'csrftoken';
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+document.getElementById('employee_data').addEventListener('submit', function(event) {
+    event.preventDefault();
+    submitEmployeeAndDetails();
+});
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await fetchUserData();
+    await fetchDepartmentData();
+});
+</script>
+{% endblock %}

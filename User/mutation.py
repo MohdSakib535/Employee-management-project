@@ -254,46 +254,8 @@ from graphql_jwt.utils import get_payload
 from graphql_jwt.refresh_token.shortcuts import create_refresh_token
 
 
-# class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
-#     # Define custom fields for success and message
-#     success = graphene.Boolean()
-#     message = graphene.String()
-#     access_token = graphene.String()
-#     refresh_token = graphene.String()
-
-#     @classmethod
-#     def resolve(cls, root, info, **kwargs):
-#         # Authenticate the user and get the access token
-#         result = super().resolve(root, info, **kwargs)
-#         user = info.context.user
-
-#         if not user.is_authenticated:
-#             raise Exception("Invalid credentials")
-
-#         # Generate access and refresh tokens
-#         access_token = get_token(user)
-#         refresh_token = create_refresh_token(user)
-
-
-#         # Store tokens in the request context for middleware to handle
-#         info.context.access_token = access_token
-#         info.context.refresh_token = refresh_token.token
-
-#         # Return a custom success message and tokens
-#         return CustomObtainJSONWebToken(
-#             access_token=access_token,
-#             refresh_token=refresh_token,
-#             success=True,
-#             message="Login successful",
-#         )
-
-
-
-from django.http import JsonResponse
-import datetime
-
-
 class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
+    # Define custom fields for success and message
     success = graphene.Boolean()
     message = graphene.String()
     access_token = graphene.String()
@@ -301,6 +263,7 @@ class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
 
     @classmethod
     def resolve(cls, root, info, **kwargs):
+        # Authenticate the user and get the access token
         result = super().resolve(root, info, **kwargs)
         user = info.context.user
 
@@ -311,16 +274,22 @@ class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
         access_token = get_token(user)
         refresh_token = create_refresh_token(user)
 
-        # Attach tokens to the request context
+
+        # Store tokens in the request context for middleware to handle
         info.context.access_token = access_token
         info.context.refresh_token = refresh_token.token
 
+        # Return a custom success message and tokens
         return CustomObtainJSONWebToken(
+            access_token=access_token,
+            refresh_token=refresh_token,
             success=True,
             message="Login successful",
-            access_token=access_token,
-            refresh_token=refresh_token.token,
         )
+
+
+
+
 
 
 class VerifyToken(graphql_jwt.Verify):

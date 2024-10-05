@@ -1,0 +1,37 @@
+
+<div class="container-fluid"></div>
+            
+    <div class="row  alighn-items-center">
+        <div class="col-4">
+            <div class="list-group m-3">
+                <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
+                  My Profile
+                </a>
+                <a href="{% url 'attendance' %}" class="list-group-item list-group-item-action">Attendance</a>
+                <a href="#" class="list-group-item list-group-item-action">Leave</a>
+                <a href="#" class="list-group-item list-group-item-action">Projects</a>
+                <a class="list-group-item list-group-item-action disabled" aria-disabled="true">Salary structure</a>
+            </div>
+            
+          </div>
+          <div class="col-8 text-center">
+            <a href="{% url 'create_employee' %}" class="btn btn-primary m-3">add</a>
+            <table id="employeeTable" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Username</th>
+                        <th>Address</th>
+                        <th>Department</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be added here dynamically using JavaScript -->
+                </tbody>
+            </table>
+          </div>
+
+    </div>
+</div>

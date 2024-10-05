@@ -12,7 +12,7 @@ def generate_alphanumeric_code(length=8):
 
 
 class Employees(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE,related_name='employee_data')
     employee_id = models.CharField(max_length=100, unique=True,null=True)
     department = models.ForeignKey(Department, related_name='employees', on_delete=models.SET_NULL, null=True)
     date_of_birth = models.DateField(null=True, blank=True)

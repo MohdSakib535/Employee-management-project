@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Registration page{% endblock %}
+
+{% block link %}
+<link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' rel='stylesheet'>
+<link href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css' rel='stylesheet'>
+{% endblock link %}
+
+{% block style %}
+
+
+{% endblock style %}
+
+{% block content2 %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-4">
+      <div class="text-center m-3"><h4>Add Attendance</h4></div>
+
+      <div class="container alert alert-success alert-dismissible fade show d-none" role="alert" id="message">
+        Successfully submitted for <span id="employee-name"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <form action="#" class="m-4 p-4 border" id="attendanceForm">
+        <div class="mb-3" style="display: none;">
+          <label for="roleName" class="form-label">Name</label>
+          <input type="text" class="form-control" id="roleName" value="{{request.user}}">
+        </div>
+        <div class="mb-3">
+          <label for="date_data" class="form-label">Date</label>
+          <input type="date" class="form-control" id="date_data">
+        </div>
+        <div class="mb-3">
+          <label for="roleDescription" class="form-label">Status</label>
+          <select id="status_select" class="form-select" aria-label="Default select example">
+            <option selected>Open this select menu</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Leave">Leave</option>
+          </select>
+        </div>
+        <button class="btn btn-info" id="role_submit">Submit</button>
+      </form>
+    </div>
+
+    <div class="col-8">
+      <div id='calendar'></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar/index.global.min.js'></script>
+
+
+
+<script>
+  // Initialize the calendar
+  let calendar; // Declare calendar variable in a broader scope
+  document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      height: 460,
+      events: [] , // Start with an empty events array, we will add events dynamically
+      
+    });
+
+    calendar.render();
+
+    // Fetch attendance data when the page loads
+    fetchAttendanceData();
+
+    // Handle form submission to add attendance
+    document.getElementById('attendanceForm').addEventListener('submit', function(event) {
+      // Note: Do not prevent default behavior, as we want the page to refresh
+      // event.preventDefault(); 
+
+      // Collect form data
+      const employee = document.getElementById('roleName').value;  
+      const date = document.getElementById('date_data').value;
+      const status = document.getElementById('status_select').value;
+
+      // Define GraphQL mutation
+      const query = `
+        mutation {
+          createUpdateAttendance(
+            employee: "${employee}",
+            date: "${date}",
+            status: "${status}"
+          ) {
+            attendance {
+              id
+              employee {
+                user {
+                  username
+                }
+              }
+              date
+              status
+            }
+            message
+          }
+        }
+      `;
+
+      // Send the request using Axios
+      axios.post('/graphql/', {
+        query: query,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(function(response) {
+        const data = response.data;
+
+        if (data.errors) {
+          alert("Error: " + data.errors[0].message);
+        } else {
+          // Update the success message
+          const messageAlert = document.getElementById('message');
+          const employeeNameSpan = document.getElementById('employee-name');
+          const attendance = data.data.createUpdateAttendance.attendance;
+
+          employeeNameSpan.textContent = attendance.employee.user.username;
+          messageAlert.classList.remove('d-none');
+
+          // Set color based on attendance status
+          let eventColor;
+          if (attendance.status === "PRESENT") {
+            eventColor = "green"; 
+          } else if (attendance.status === "ABSENT") {
+            eventColor = "red";  
+          } else if (attendance.status === "LEAVE") {
+            eventColor = "blue";  
+          } else {
+            console.warn("Unknown status:", attendance.status);
+            eventColor = "gray"; // Default color for unexpected statuses
+          }
+
+          console.log("Adding event with color:", eventColor);
+
+          // Add the event to the calendar
+          calendar.addEvent({
+            title: attendance.status,  
+            start: attendance.date,    
+            allDay: true,              
+            backgroundColor: eventColor,  // Apply the color
+            borderColor: eventColor
+          });
+
+          // Clear form fields
+          document.getElementById('roleName').value = "";
+          document.getElementById('date_data').value = "";
+          document.getElementById('status_select').value = "";
+
+          setTimeout(() => {
+            location.reload(); // Refresh the page
+          }, 10); // Wait 1 second before refreshing
+
+
+        }
+      })
+      .catch(function(error) {
+        console.error("Error submitting attendance:", error);
+        alert("Error submitting attendance.");
+      });
+    });
+  });
+
+  // Function to fetch attendance data
+  function fetchAttendanceData() {
+    const query = `
+      query {
+        myAttendance {
+          date
+          status
+        }
+      }
+    `;
+    const url = `/graphql/?query=${encodeURIComponent(query)}`;
+
+    // Send the request using Axios
+    axios.get(url, {
+      query: query,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(function(response) {
+      const data = response.data;
+
+      if (data.errors) {
+        console.error("Error fetching attendance data:", data.errors[0].message);
+      } else {
+        const attendanceRecords = data.data.myAttendance;
+
+        // Loop through attendance records and add events to the calendar
+        attendanceRecords.forEach(record => {
+          let eventColor;
+          if (record.status === "PRESENT") {
+            eventColor = "green"; 
+          } else if (record.status === "ABSENT") {
+            eventColor = "red";  
+          } else if (record.status === "LEAVE") {
+            eventColor = "blue";  
+          } else {
+            console.warn("Unknown status:", record.status);
+            eventColor = "gray"; // Default color for unexpected statuses
+          }
+
+          console.log("Adding event for record with color:", eventColor); // Log event color
+
+          // Add the event to the calendar
+          calendar.addEvent({
+            title: record.status,  
+            start: record.date,    
+            allDay: true,              
+            backgroundColor: eventColor,  // Apply the color
+            borderColor: eventColor
+          });
+        });
+      }
+    })
+    .catch(function(error) {
+      console.error("Error fetching attendance data:", error);
+    });
+  }
+</script>
+
+{% endblock %}

@@ -7,7 +7,24 @@
     
 {% block content1 %}
 
-<h1>dashboard</h1>
+
+
+{% if request.user.role.name == "Admin" %}
+
+{% include 'admin.html' %}
+
+{% elif request.user.role.name == "manager" %}
+{% include 'manager.html' %}
+
+
+{% elif request.user.role.name == "simple user" %}
+{% include 'simpleuser.html' %}
+
+{% endif %}
+
+
+
+
 
 
 
@@ -18,5 +35,104 @@
 {% endblock  %} 
 
 
-{% block script %} {% endblock %}
+{% block script %}
+
+<script>
+    // GraphQL query to fetch all employee data
+    const query = `
+        query {
+            allEmployee {
+                id
+                employeeId
+                address
+                user {
+                    id
+                    username
+                    role{
+                    name
+                    }
+                }
+                department {
+                    name
+                }
+            }
+        }
+    `;
+
+    // Function to fetch data using GET request and populate the table
+
+    const updateEmployeeUrl = "{% url 'update_employee' 0 %}";
+    console.log("url------",updateEmployeeUrl);
+    
+    function fetchEmployeeData() {
+        const url = `/graphql/?query=${encodeURIComponent(query)}`;
+        axios.get(url, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            const employees = response.data.data.allEmployee;
+            const tableBody = document.querySelector("#employeeTable tbody");
+
+            // Clear the table body first in case there's any existing data
+            tableBody.innerHTML = '';
+
+            // Iterate through each employee and add a row to the table
+            employees.forEach(employee => {
+                const row = document.createElement("tr");
+
+                // Create columns for the employee data
+                const idCell = document.createElement("td");
+                idCell.textContent = employee.employeeId;
+                row.appendChild(idCell);
+
+                const usernameCell = document.createElement("td");
+                usernameCell.textContent = employee.user.username;
+                row.appendChild(usernameCell);
+
+                const addressCell = document.createElement("td");
+                addressCell.textContent = employee.address;
+                row.appendChild(addressCell);
+
+                const departmentCell = document.createElement("td");
+                departmentCell.textContent = employee.department ? employee.department.name : 'N/A';
+                row.appendChild(departmentCell);
+
+                const roleCell = document.createElement("td");
+                roleCell.textContent = employee.user.role.name ? employee.user.role.name : 'N/A';
+                row.appendChild(roleCell);
+
+                const actionCell = document.createElement("td");
+                const editButton = document.createElement("a");
+                editButton.href = updateEmployeeUrl.replace('0',employee.id);
+                editButton.className = "btn btn-sm btn-primary";
+                editButton.textContent = "Edit";
+                actionCell.appendChild(editButton);
+                row.appendChild(actionCell);
+
+                // Append the row to the table
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error("There was an error fetching the employee data!", error);
+        });
+    }
+
+    // Run the function when the document has fully loaded
+    // b1=document.getElementById("id1")
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('click');
+        
+        fetchEmployeeData();
+    });
+
+    // window.onload = function() {
+    //         fetchEmployeeData();
+    // };
+</script>
+
+
+{% endblock %}
 

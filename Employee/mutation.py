@@ -348,16 +348,17 @@ mutation{
 class createUpdateAttendanceData(graphene.Mutation):
     class Arguments():
         id=graphene.Int()
-        employee=graphene.Int()
+        employee=graphene.String()
         date=graphene.Date()
         status=graphene.String()
     attendance=graphene.Field(AttendanceType)
     message=graphene.String()
 
-    def mutate(self,info, employee,date,status,id=None):
+    def mutate(self,info, employee , date,status,id=None):
         if id is None:
             try:
-                get_employee=get_object_or_404(Employees,id=employee)
+                get_employee=get_object_or_404(Employees,user__username=employee)
+
                 attendance_create=Attendance.objects.create(
                     employee=get_employee,
                     date=date,
@@ -372,7 +373,7 @@ class createUpdateAttendanceData(graphene.Mutation):
         else:
             try:
                 attendance_instance=Attendance.objects.get(id=id)
-                get_employee=get_object_or_404(Employees,id=employee)
+                get_employee=get_object_or_404(Employees,user__username=employee)
                 if employee:
                     attendance_instance.employee=get_employee
                 if date:

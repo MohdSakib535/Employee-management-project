@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Update Role{% endblock %}
+
+
+{% block link %}
+      
+{% endblock link %}
+
+{% block style %}
+    
+{% endblock style %}
+    
+{% block content2 %}
+
+<div class="text-center m-4" style="text-decoration: underline;"><h3>Update Role </h3></div>
+
+
+<div class="row"></div>
+    <div class="col-6 offset-3">
+        <form action="#" class="m-4 p-4 border" id="edit_role_form">
+            <div class="mb-3">
+                <label for="editRoleName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="editRoleName" >
+            </div>
+            <div class="mb-3">
+                <label for="editRoleDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="editRoleDescription" rows="3"></textarea>
+            </div>
+            <button class="btn btn-info" id="edit_role_submit">Update</button>
+        </form>
+    </div>
+</div>
+
+
+
+{% endblock  %}
+
+
+{% block script %}
+
+<script>
+    const roleId = "{{ role_id }}";
+    console.log(roleId);
+    
+
+    // Fetch role details when the page loads
+    document.addEventListener("DOMContentLoaded", function() {
+        fetchRoleDetails(roleId);
+
+        function fetchRoleDetails(id) {
+            const query = `
+                query {
+                    particularRole(id: ${id}) {
+                        name
+                        description
+
+                    }
+                }
+            `;
+
+            const url = `/graphql/?query=${encodeURIComponent(query)}`;
+
+
+            axios.get(url, {
+                headers: { "Content-Type": "application/json" }
+            })
+            .then(response => {
+                const role = response.data.data.particularRole[0];
+                console.log("-----",response.data.data.particularRole[0].name);
+                
+                if (role) {
+                    document.getElementById("editRoleName").value = role.name;
+                    document.getElementById("editRoleDescription").value = role.description;
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching role details:", error);
+            });
+        }
+    });
+
+    // Update the role on form submission
+    document.getElementById("edit_role_form").addEventListener("submit", function(event) {
+        event.preventDefault();
+        
+        const roleName = document.getElementById("editRoleName").value;
+        const roleDescription = document.getElementById("editRoleDescription").value;
+
+        const mutation = `
+            mutation {
+                UpdateRole(id: "${roleId}", name: "${roleName}", description: "${roleDescription}") {
+                    roleData {
+                        id
+                        name
+                        description
+                    }
+                }
+            }
+        `;
+
+        axios.post("/graphql/", {
+            query: mutation
+        }, {
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken()
+            }
+        })
+        .then(response => {
+            const updateRoleResponse = response.data.data.UpdateRole;
+            if (updateRoleResponse) {
+                alert("Role updated successfully!");
+                window.location.href = "/de";  // Redirect back to the roles list
+            } else {
+                alert("Error updating role");
+            }
+        })
+        .catch(error => {
+            console.error("Error updating role:", error);
+        });
+    });
+
+    // Function to get the CSRF token from cookies
+    function getCSRFToken() {
+        const name = "csrftoken";
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+                return cookie.substring(name.length + 1);
+            }
+        }
+        return null;
+    }
+
+</script>
+
+{% endblock %}
