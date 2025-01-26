@@ -62,6 +62,9 @@
   // Initialize the calendar
   let calendar; // Declare calendar variable in a broader scope
   document.addEventListener('DOMContentLoaded', function() {
+    // const access_token_data = request.COOKIES.get('access_token')
+    // console.log('-----',access_token_data);
+
     const calendarEl = document.getElementById('calendar');
     calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
@@ -84,6 +87,8 @@
       const employee = document.getElementById('roleName').value;  
       const date = document.getElementById('date_data').value;
       const status = document.getElementById('status_select').value;
+    
+      
 
       // Define GraphQL mutation
       const query = `
@@ -114,6 +119,7 @@
       }, {
         headers: {
           'Content-Type': 'application/json',
+         
         }
       })
       .then(function(response) {
@@ -191,7 +197,8 @@
     }, {
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      withCredentials: true
     })
     .then(function(response) {
       const data = response.data;

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Manager Dashboard{% endblock title %}
+
+{% block content1 %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Left Side: Manager Creation -->
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5>Create Manager</h5>
+        </div>
+        <div class="card-body">
+          <form id="createManagerForm">
+            <div class="mb-3">
+              <label for="userId" class="form-label">Select User</label>
+              <select id="userId" class="form-select" required>
+                <option value="" selected disabled>Select a user</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="roleDescription" class="form-label">Role Description</label>
+              <textarea id="roleDescription" class="form-control" rows="3" placeholder="Enter role description" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Save</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Manager List -->
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h5>Manager List</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>Manager ID</th>
+                <th>Username</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <tbody id="managerTable">
+              <!-- Manager rows will be dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("createManagerForm");
+    const managerTable = document.getElementById("managerTable");
+    const userDropdown = document.getElementById("userId");
+
+    // Function to fetch managers for the table
+    const fetchManagers = async () => {
+      const query = `
+        query {
+          allManager {
+            managerId
+            user {
+              username
+              email
+            }
+          }
+        }
+      `;
+
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+
+      const data = await response.json();
+      managerTable.innerHTML = ""; // Clear existing rows
+      data.data.allManager.forEach((manager) => {
+        const row = `
+          <tr>
+            <td>${manager.managerId}</td>
+            <td>${manager.user.username}</td>
+            <td>${manager.user.email}</td>
+          </tr>
+        `;
+        managerTable.innerHTML += row;
+      });
+    };
+
+    // Function to fetch users for dropdown
+    const fetchUsers = async () => {
+      const query = `
+        query {
+          otherUserList {
+            id
+            username
+            email
+          }
+        }
+      `;
+
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
+
+      const data = await response.json();
+      userDropdown.innerHTML = '<option value="" selected disabled>Select a user</option>'; // Reset dropdown
+      data.data.otherUserList.forEach((user) => {
+        const option = document.createElement("option");
+        option.value = user.id;
+        option.textContent = `${user.username} (${user.email})`;
+        userDropdown.appendChild(option);
+      });
+    };
+
+    // Fetch managers and users on page load
+    fetchManagers();
+    fetchUsers();
+
+    // Handle form submission to create a new manager
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const userId = document.getElementById("userId").value;
+      const roleDescription = document.getElementById("roleDescription").value;
+
+      const mutation = `
+        mutation {
+          CreateUpdateManager(userId: ${userId}, roleDescription: "${roleDescription}") {
+            managerDta {
+              user {
+                username
+              }
+              roleDescription
+            }
+            message
+          }
+        }
+      `;
+
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: mutation })
+      });
+
+      const data = await response.json();
+
+      if (data.data.CreateUpdateManager) {
+        alert(data.data.CreateUpdateManager.message);
+        fetchManagers(); // Refresh the manager list
+      } else {
+        alert("Error creating manager. Please try again.");
+      }
+
+      form.reset(); // Reset form fields
+    });
+  });
+</script>
+{% endblock content1 %}

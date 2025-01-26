@@ -3,3 +3,17 @@ when login u get access token as well as refresh token
 when access token is expire 
 hit refresh token api to get new access token
 when hit any api than need authentication place access token in header Authorization:Jwt <access token>
+
+
+
+
+#how project work
+
+after setup first make role 
+Admin
+manager
+simple user
+other
+
+when create any user and it is simple user so select  role simple user in  registration
+when create manager select role "other" than  admin create manager role 

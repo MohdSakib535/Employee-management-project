@@ -167,11 +167,12 @@ function addCloseButtonListener(formElement) {
 }
 
 async function fetchUserData(){
-    const UserQuery = `query { allUserData {id email } }`;
+    const UserQuery = `query { onlySimpleuserData {id email } }`;
     const url = `/graphql/?query=${encodeURIComponent(UserQuery)}`;
     try {
         let responseUser = await axios.get(url, { headers: { 'Content-Type': 'application/json' } });
-        let user_dta = responseUser.data.data.allUserData;
+        let user_dta = responseUser.data.data.onlySimpleuserData;
+        
         let userSelect = document.getElementById("userSelect");
         userSelect.innerHTML = '';
         user_dta.forEach(dta => {

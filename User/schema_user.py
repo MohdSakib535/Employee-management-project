@@ -28,6 +28,7 @@ class Query(graphene.ObjectType):
     me = graphene.Field(UserType)
     all_department=DjangoListField(DepartmentTypes)
     particular_role=graphene.List(RoleTypes,id=graphene.Int())
+    other_user_list=graphene.List(UserType)
 
     """
     add access token in header in Authorization Jwt <access token> for all_user_data
@@ -40,6 +41,11 @@ class Query(graphene.ObjectType):
     }
     """
     all_user_data=graphene.List(UserType)
+    only_simpleUser_data=graphene.List(UserType)
+
+    def resolve_only_simpleUser_data(self,info):
+        print('---------ii--')
+        return CustomUser.objects.filter(role__name="simple user")
 
 
     
@@ -57,9 +63,12 @@ class Query(graphene.ObjectType):
     def resolve_particular_role(self,info,id):
         return Role.objects.filter(id=id)
     
-    @login_required
+    # @login_required
     def resolve_me(self,info):
         return info.context.user
+    
+    def resolve_other_user_list(self,info):
+        return CustomUser.objects.filter(role__name="other")
     
 
 

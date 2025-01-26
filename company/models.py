@@ -2,23 +2,63 @@ from django.db import models
 from Employee.models import Employees
 from django.core.validators import MinValueValidator
 from User.models import CustomUser,Department
+from Employee.models import generate_alphanumeric_code
 
 # Create your models here.
+
+#admin create manager
+#manager create employee 
+# admin create projects
+# admin assign manager to project
+# employee under manager
+# manger assign employee to project
+
 
 class Manager(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     employees = models.ManyToManyField(Employees, related_name="employee_data", blank=True)
     role_description = models.TextField(blank=True)
+    manager_id = models.CharField(max_length=100, unique=True,null=True)
 
     def __str__(self):
         return f"{self.user.username} "
+    
+    def add_employee(self, *employees):
+        """
+        Add one or multiple employees to the manager's team.
+        :param employees: One or multiple Employee instances.
+        """
+        resolved_employees = []
+        for employee in employees:
+            if employee in self.employees.all():
+                raise ValueError(f"Employee {employee.id} is already assigned to this manager.")
+            resolved_employees.append(employee)
 
-    def add_employee(self, employee):
-        """ Add an employee to the manager's team. """
-        self.employees.add(employee)
+        self.employees.add(*resolved_employees)  # Add all resolved employees
 
-    def remove_employee(self, employee):
-        """ Remove an employee from the manager's team. """
+    
+    def remove_employee(self, employees):
+
+        """
+        Remove one or multiple employees from the manager's team.
+        :param employees: Can be a single Employee instance or a list of Employee instances.
+        """
+        if not isinstance(employees, list):
+            employees = [employees]  # Convert single instance to list
+
+        # Validate employees before removal
+        for employee in employees:
+            if employee not in self.employees.all():
+                raise ValueError(f"Employee {employee.id} is not assigned to this manager.")
+
+        self.employees.remove(*employees)  # Remove multiple employees at once
+
+    def save(self, *args, **kwargs):
+        if not self.manager_id:
+            self.manager_id = generate_alphanumeric_code()
+        super(Manager, self).save(*args, **kwargs)
+
+    
 
 
 

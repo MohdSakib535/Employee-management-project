@@ -1,24 +1,19 @@
+<!-- your_app/templates/login.html -->
+
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Registration page{% endblock %}
-
+{% block title %}Login{% endblock %}
 
 {% block link %}
 <link rel="stylesheet" href="{% static 'css/registration.css' %}">
-      
 {% endblock link %}
 
-{% block style %}
-    
-{% endblock style %}
-    
 {% block content2 %}
 
 <div class="d-flex justify-content-center mt-4">
     <h1>Login</h1>
 </div>
-
 
 <div class="container alert alert-warning alert-dismissible fade show" style="display:none" role="alert" id="message">
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -27,16 +22,17 @@
 <div class="main-w3layouts wrapper">
     <div class="main-agileinfo">
         <div class="agileits-top">
+           
             <form action="#" method="post" id="loginForm">
-                {% csrf_token %}
-                <input class="text" type="text" name="Username" placeholder="Username" id="username" required="">
-                
-                <input class="text" style="margin-top:18px;" type="password" name="password" placeholder="Password" id="password" required=""><br>
-               
-               
-                <input type="submit" value="SIGNUP" id="registerBtn" >
-            </form>
-            <p>Don't have an Account? <a href="#"> Login Now!</a></p>
+              {% csrf_token %}
+              <input class="text" type="text" name="username" placeholder="Username" id="username" required="">
+              
+              <input class="text" style="margin-top:18px;" type="password" name="password" placeholder="Password" id="password" required=""><br>
+             
+             
+              <input type="submit" value="LOGIN" id="loginBtn" >
+          </form>
+            <p>Don't have an Account? <a href="{% url 'registration' %}">Register Now!</a></p>
         </div>
     </div>
     <!-- //copyright -->
@@ -55,72 +51,82 @@
 </div>
 {% endblock  %}
 
-
 {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    // GraphQL query to fetch all employee data
-    const query = `
-        query {
-            allEmployee {
-                id
-                address
-                user {
-                    id
-                    username
-                }
-                department {
-                    name
-                }
-            }
-        }
-    `;
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+  
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
 
-    // Function to fetch data and populate the table
-    function fetchEmployeeData() {
-        axios.get('/graphql/', {
-            query: query
+        axios({
+            method: 'post',
+            url: '/graphql/',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            data: {
+                query: `
+                    mutation {
+                        login(username: "${username}", password: "${password}") {
+                            accessToken
+                            refreshToken
+                            success
+                            payload
+                        }
+                    }
+                `
+            }
         })
         .then(response => {
-            const employees = response.data.data.allEmployee;
-            const tableBody = document.querySelector("#employeeTable tbody");
+            const data = response.data;
+            console.log('----data-----',data);
+            
 
-            // Clear the table body first in case there's any existing data
-            tableBody.innerHTML = '';
+            if (data.errors) {
+                console.error("Login failed:", data.errors);
+                // Display error message to user
+                const messageBox = document.getElementById('message');
+                messageBox.style.display = 'block';
+                messageBox.innerText = "Login failed. Please check your credentials and try again.";
+            } else {
+                const success = data.data.login.success;
+                const message = data.data.login.message;
 
-            // Iterate through each employee and add a row to the table
-            employees.forEach(employee => {
-                const row = document.createElement("tr");
+                if (success) {
+                    console.log("Login successful!");
 
-                // Create columns for the employee data
-                const idCell = document.createElement("td");
-                idCell.textContent = employee.id;
-                row.appendChild(idCell);
+                    // Optionally display a success message
+                    const messageBox = document.getElementById('message');
+                    messageBox.style.display = 'block';
+                    messageBox.classList.remove('alert-warning');
+                    messageBox.classList.add('alert-success');
+                    messageBox.innerText = message;
 
-                const usernameCell = document.createElement("td");
-                usernameCell.textContent = employee.user.username;
-                row.appendChild(usernameCell);
+                    window.location.href='/d'
 
-                const addressCell = document.createElement("td");
-                addressCell.textContent = employee.address;
-                row.appendChild(addressCell);
-
-                const departmentCell = document.createElement("td");
-                departmentCell.textContent = employee.department ? employee.department.name : 'N/A';
-                row.appendChild(departmentCell);
-
-                // Append the row to the table
-                tableBody.appendChild(row);
-            });
+                    // Redirect to dashboard after a short delay to allow message display
+                    // setTimeout(() => {
+                    //     window.location.href = '/d';  // Update with your dashboard URL
+                    // }, 1000);
+                } else {
+                    console.error("Login failed:", message);
+                    // Display error message to user
+                    const messageBox = document.getElementById('message');
+                    messageBox.style.display = 'block';
+                    messageBox.innerText = message || "Login failed. Please try again.";
+                }
+            }
         })
         .catch(error => {
-            console.error("There was an error fetching the employee data!", error);
+            console.error("Error during login:", error);
+            // Display generic error message
+            const messageBox = document.getElementById('message');
+            messageBox.style.display = 'block';
+            messageBox.innerText = "An unexpected error occurred. Please try again later.";
         });
-    }
-
-    // Run the function when the document has fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        fetchEmployeeData();
     });
 </script>
-
 {% endblock %}

@@ -23,12 +23,16 @@ from User import views
 from frontend import views as fe
 from django.conf.urls.static import static
 from django.conf import settings
-# from User import views
+from User import views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('graphql/', csrf_exempt(GraphQLView.as_view(graphiql=True, schema=schema))),
+    # path('graphql/', csrf_exempt(views.CustomGraphQLView.as_view(graphiql=True, schema=schema))),
     path('activate/<uidb64>/<token>/', views.activate, name='activate'),
+
+    path('logout/', views.LogoutView.as_view(), name='logout'),
 
     #frontend Api
     path("",fe.Home,name='home'),
@@ -39,8 +43,11 @@ urlpatterns = [
     path('eu/<int:id>/',fe.Updating_employee,name='update_employee'),
 
     path('a',fe.Attendance_data,name='attendance'),
+    path('le',fe.Leave_data,name='leave'),
 
     path('de',fe.role_Data,name='role'),
+    path('cm',fe.Create_manager,name='create_manager'),
+    path('ae',fe.Assign_Employee,name='assignemployees'),
     path('ur/<int:id>/',fe.update_Role,name='update_role'),
     
 
