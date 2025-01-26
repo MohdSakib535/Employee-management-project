@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
-    "frontend"
+    "frontend",
 ]
 
 AUTH_USER_MODEL = 'User.CustomUser'
@@ -53,11 +53,17 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # 'User.middleware2.JWTAuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'User.new_middleware.JWTAuthenticationMiddleware',
+    # 'User.middleware.JWTAuthenticationMiddleware',
+    
+    
+    
 ]
 
 ROOT_URLCONF = 'EmployeeManagement.urls'
@@ -161,10 +167,14 @@ from datetime import timedelta
 
 
 GRAPHQL_JWT = {
-    "JWT_EXPIRATION_DELTA": timedelta(seconds=30),
+    'JWT_PAYLOAD_HANDLER': 'EmployeeManagement.utils.custom_jwt_payload',
+    'JWT_REFRESH_PAYLOAD_HANDLER': 'graphql_jwt.utils.jwt_refresh_payload',
+    'JWT_SECRET_KEY': SECRET_KEY,
+    "JWT_EXPIRATION_DELTA": timedelta(minutes=1),
+    'JWT_ALGORITHM': 'HS256',
     'JWT_VERIFY_EXPIRATION': True,
     "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
-    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(seconds=60),
+    "JWT_REFRESH_EXPIRATION_DELTA": timedelta(minutes=60),
 }
 
 
@@ -180,3 +190,60 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # Allow cookies to be sent
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # Keeps the default Django loggers
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} [{name}:{lineno}] {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'DEBUG',  # Log all levels DEBUG and above to the file
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django_debug.log'),
+            'formatter': 'verbose',
+        },
+        'error_file': {
+            'level': 'ERROR',  # Log only ERROR and above to a separate file
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django_errors.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {  # Default Django logger
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'INFO',  # Set to INFO to reduce verbosity
+            'propagate': True,
+        },
+        'your_app': {  # Replace 'your_app' with your actual app name
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'DEBUG',  # Set to DEBUG to capture detailed logs
+            'propagate': False,
+        },
+        'graphql_jwt': {  # Logger for graphql_jwt package
+            'handlers': ['console', 'file', 'error_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# Ensure the logs directory exists
+LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)

@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% block title %}Manage Employees{% endblock title %}
+
+{% block content1 %}
+<div class="container mt-4">
+  <div class="row">
+    <!-- Assign Employees Section -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5>Assign Employees</h5>
+        </div>
+        <div class="card-body">
+          <form id="assignEmployeesForm">
+            <h6>Select Users to Assign</h6>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Select</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                  </tr>
+                </thead>
+                <tbody id="userList">
+                  <!-- User rows will be dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mt-3">Assign Selected Users</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Remove Employees Section -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h5>My Employees</h5>
+        </div>
+        <div class="card-body">
+          <form id="removeEmployeesForm">
+            <h6>Select Users to Remove</h6>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Select</th>
+                    <th>Username</th>
+                  </tr>
+                </thead>
+                <tbody id="currentEmployees">
+                  <!-- Employee rows will be dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+            <button type="submit" class="btn btn-danger w-100 mt-3">Remove Selected Users</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const assignForm = document.getElementById("assignEmployeesForm");
+  const removeForm = document.getElementById("removeEmployeesForm");
+  const userList = document.getElementById("userList");
+  const currentEmployeesTable = document.getElementById("currentEmployees");
+  let managerId_data = null; // Initialize managerId as null
+
+  // Fetch the Manager ID for the Current User
+  const fetchManagerId = async () => {
+    const query = `
+      query {
+        currentManager {
+          id
+          managerId
+          user {
+            username
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+      console.log("Manager Data:", data);
+
+      if (data.data && data.data.currentManager) {
+        managerId_data = data.data.currentManager.id;
+        console.log("Manager ID:", managerId_data);
+
+        // Fetch Employees after obtaining the Manager ID
+        fetchEmployee();
+        fetchCurrentEmployees();
+      } else {
+        alert("Error: Could not fetch manager details.");
+      }
+    } catch (error) {
+      console.error("Error fetching manager ID:", error);
+    }
+  };
+
+  // Fetch Employees Not Assigned to Manager
+  const fetchEmployee = async () => {
+    const query = `
+      query {
+        allEmployeewithoutSupervisor {
+          id
+          user {
+            username
+            email
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+      console.log("Employee Data:", data);
+
+      userList.innerHTML = ""; // Clear existing rows
+      data.data.allEmployeewithoutSupervisor.forEach((emp_data) => {
+        const employeeId_data = emp_data.id || "N/A";
+        const username = emp_data.user?.username || "N/A";
+        const email = emp_data.user?.email || "N/A";
+
+        const row = `
+          <tr>
+            <td>
+              <input type="checkbox" name="userIds" value="${employeeId_data}">
+            </td>
+            <td>${username}</td>
+            <td>${email}</td>
+          </tr>
+        `;
+        userList.innerHTML += row;
+      });
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  // Fetch Employees Assigned to Manager
+  const fetchCurrentEmployees = async () => {
+    const query = `
+      query {
+        allManager {
+          id
+          employees {
+            id
+            user {
+              username
+            }
+          }
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      const data = await response.json();
+      console.log("Current Employees Data:", data);
+
+      const manager = data.data.allManager.find((m) => m.id === managerId_data.toString());
+      currentEmployeesTable.innerHTML = ""; // Clear existing rows
+
+      if (manager && manager.employees) {
+        manager.employees.forEach((employee) => {
+          const row = `
+            <tr>
+              <td>
+                <input type="checkbox" name="removeIds" value="${employee.id}">
+              </td>
+              <td>${employee.user.username}</td>
+            </tr>
+          `;
+          currentEmployeesTable.innerHTML += row;
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching current employees:", error);
+    }
+  };
+
+  // Handle Form Submission for Assigning Employees
+  assignForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const selectedUserIds = Array.from(
+      document.querySelectorAll('input[name="userIds"]:checked')
+    ).map((checkbox) => checkbox.value);
+    console.log("Selected User IDs to Assign:", selectedUserIds);
+
+    const mutation = `
+      mutation {
+        CreateUpdateManager(
+          id: ${managerId_data},
+          addEmployeeIds: [${selectedUserIds}],
+          removeEmployeeIds: [],
+          roleDescription: "Updated Role Description"
+        ) {
+          message
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: mutation }),
+      });
+
+      const data = await response.json();
+      if (data.data.CreateUpdateManager) {
+        // Refresh both tables after assigning employees
+        fetchEmployee();
+        fetchCurrentEmployees();
+      } else {
+        alert("Error assigning employees. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error assigning employees:", error);
+    }
+  });
+
+  // Handle Form Submission for Removing Employees
+  removeForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const selectedRemoveIds = Array.from(
+      document.querySelectorAll('input[name="removeIds"]:checked')
+    ).map((checkbox) => checkbox.value);
+    console.log("Selected User IDs to Remove:", selectedRemoveIds);
+
+    const mutation = `
+      mutation {
+        CreateUpdateManager(
+          id: ${managerId_data},
+          addEmployeeIds: [],
+          removeEmployeeIds: [${selectedRemoveIds}],
+          roleDescription: "Updated Role Description"
+        ) {
+          message
+        }
+      }
+    `;
+
+    try {
+      const response = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: mutation }),
+      });
+
+      const data = await response.json();
+      if (data.data.CreateUpdateManager) {
+        // Refresh both tables after removing employees
+        fetchEmployee();
+        fetchCurrentEmployees();
+      } else {
+        alert("Error removing employees. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error removing employees:", error);
+    }
+  });
+
+  // Initial Data Load
+  fetchManagerId(); // Fetch manager ID first
+});
+
+
+</script>
+{% endblock content1 %}

@@ -17,3 +17,10 @@ class UserType(DjangoObjectType):
     class Meta:
         model = CustomUser
         fields = ("id", "username", "email", "role", "groups", "user_permissions")
+
+
+# class PayloadType(graphene.ObjectType):
+#     user_id = graphene.Int()
+#     username = graphene.String()
+#     exp = graphene.Int()
+#     origIat = graphene.Int()

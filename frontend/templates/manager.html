@@ -1,0 +1,47 @@
+<div class="container-fluid my-4">
+    <!-- Sidebar -->
+    <div class="row align-items-start">
+        <div class="col-3">
+            <div class="list-group m-3">
+                <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
+                    My Profile
+                </a>
+                <a href="{% url 'assignemployees' %}" class="list-group-item list-group-item-action">Employees</a>
+                <a href="{% url 'attendance' %}" class="list-group-item list-group-item-action">Attendance</a>
+                <a href="{% url 'leave' %}" class="list-group-item list-group-item-action">Leave</a>
+                <a href="#" class="list-group-item list-group-item-action">Projects</a>
+                <a class="list-group-item list-group-item-action disabled" aria-disabled="true">Salary Structure</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="text-primary">Manage Employees</h3>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-3">
+                <input type="text" id="searchBar" class="form-control" placeholder="Search employees by name, department, or role">
+            </div>
+
+            <!-- Employee Table -->
+            <table id="employeeTable" class="table table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Username</th>
+                        <th>Address</th>
+                        <th>Department</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic rows will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+   

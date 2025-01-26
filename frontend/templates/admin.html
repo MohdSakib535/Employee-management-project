@@ -1,49 +1,83 @@
-<div class="container-fluid"></div>
-    <div class="row alighn-items-center">
-        <div class="col-4">
-            <ol class="list-group list-group-numbered m-3">
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                  <div class="ms-2 me-auto">
-                    <div class="fw-bold">MANAGER</div>
-                    Content for list item
-                  </div>
-                  <span class="badge text-bg-primary rounded-pill">14</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                  <div class="ms-2 me-auto">
-                    <div class="fw-bold">USER</div>
-                    Content for list item
-                  </div>
-                  <span class="badge text-bg-primary rounded-pill">14</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-start">
-                  <div class="ms-2 me-auto">
-                    <div class="fw-bold">Subheading</div>
-                    Content for list item
-                  </div>
-                  <span class="badge text-bg-primary rounded-pill">14</span>
-                </li>
-              </ol>
-            
-          </div>
-          <div class="col-8 text-center">
-            <a href="{% url 'create_employee' %}" class="btn btn-primary m-3">add</a>
-            <table id="employeeTable" class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Employee ID</th>
-                        <th>Username</th>
-                        <th>Address</th>
-                        <th>Department</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be added here dynamically using JavaScript -->
-                </tbody>
-            </table>
+<div class="container-fluid py-4">
+  <div class="row">
+    <!-- Left Section: Quick Links -->
+    <div class="col-md-4">
+      <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white text-center">
+          <h5 class="mb-0">Quick Links</h5>
+        </div>
+        <div class="card-body p-0">
+          <ol class="list-group list-group-numbered">
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <a href="{% url 'create_manager' %}" class="text-decoration-none text-dark w-100">
+                <div class="ms-2">
+                  <div class="fw-bold">Manager</div>
+                  Click to see managers
+                </div>
+              </a>
+              <span class="badge text-bg-primary rounded-pill">14</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <a href="#" class="text-decoration-none text-dark w-100">
+                <div class="ms-2">
+                  <div class="fw-bold">Users</div>
+                  View all users
+                </div>
+              </a>
+              <span class="badge text-bg-primary rounded-pill">20</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-start">
+              <a href="#" class="text-decoration-none text-dark w-100">
+                <div class="ms-2">
+                  <div class="fw-bold">Projects</div>
+                  Manage your projects
+                </div>
+              </a>
+              <span class="badge text-bg-primary rounded-pill">8</span>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section: Manage Employees -->
+    <div class="col-md-8">
+      <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Manage Employees</h5>
+          <!-- <button class="btn btn-light btn-sm text-primary">Add Employee</button> -->
+        </div>
+        <div class="card-body">
+          <!-- Search Bar -->
+          <div class="mb-3">
+            <input
+              type="text"
+              id="searchBar"
+              class="form-control"
+              placeholder="Search employees by name, department, or role"
+            />
           </div>
 
+          <!-- Employee Table -->
+          <div class="table-responsive">
+            <table id="employeeTable" class="table table-bordered table-hover">
+              <thead class="table-dark">
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Username</th>
+                  <th>Address</th>
+                  <th>Department</th>
+                  <th>Role</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dynamic rows will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

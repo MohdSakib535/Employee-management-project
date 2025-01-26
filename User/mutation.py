@@ -254,40 +254,123 @@ from graphql_jwt.utils import get_payload
 from graphql_jwt.refresh_token.shortcuts import create_refresh_token
 
 
+# class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
+#     # Define custom fields for success and message
+#     success = graphene.Boolean()
+#     message = graphene.String()
+#     access_token = graphene.String()
+#     refresh_token = graphene.String()
+
+#     @classmethod
+#     def resolve(cls, root, info, **kwargs):
+#         # Authenticate the user and get the access token
+#         result = super().resolve(root, info, **kwargs)
+#         user = info.context.user
+
+#         if not user.is_authenticated:
+#             raise Exception("Invalid credentials")
+
+#         # Generate access and refresh tokens
+#         access_token = get_token(user)
+#         refresh_token = create_refresh_token(user)
+
+
+#         # Store tokens in the request context for middleware to handle
+#         info.context.access_token = access_token
+#         info.context.refresh_token = refresh_token.token
+
+#         # Return a custom success message and tokens
+#         return CustomObtainJSONWebToken(
+#             access_token=access_token,
+#             refresh_token=refresh_token,
+#             success=True,
+#             message="Login successful",
+#         )
+
+
+
+
+
+class PayloadType(graphene.ObjectType):
+    username = graphene.String()
+    exp = graphene.Int()
+    origIat = graphene.Int()
+    userId = graphene.String()
+
+
+from django.conf import  settings
+import jwt
 class CustomObtainJSONWebToken(graphql_jwt.ObtainJSONWebToken):
-    # Define custom fields for success and message
     success = graphene.Boolean()
     message = graphene.String()
-    access_token = graphene.String()
-    refresh_token = graphene.String()
+    accessToken = graphene.String()    # Changed to camelCase
+    refreshToken = graphene.String()   # Changed to camelCase
+    payload = graphene.Field(PayloadType)
 
     @classmethod
     def resolve(cls, root, info, **kwargs):
-        # Authenticate the user and get the access token
+        print("********* step3*********")
+        # Call the parent resolver to authenticate the user
         result = super().resolve(root, info, **kwargs)
+        print('result----',result)
         user = info.context.user
+         # Debugging Statements
+        print('--- User Information ---')
+        print('User:', user)
+        print('User ID:', user.id)
+        print('Type of User ID:', type(user.id))
+        print('Is Authenticated:', user.is_authenticated)
+        print('--- End of User Information ---')
 
         if not user.is_authenticated:
             raise Exception("Invalid credentials")
+            
+        if not user.id:
+            raise Exception("User ID is None")
 
-        # Generate access and refresh tokens
+
+        # Generate tokens
         access_token = get_token(user)
-        refresh_token = create_refresh_token(user)
+        refresh_token_instance = create_refresh_token(user)
+        refresh_token = str(refresh_token_instance)  # Ensure it's a string
+        
+        payload_decoded = jwt.decode(access_token, settings.SECRET_KEY, algorithms=['HS256'])
+
+        payload_decoded['user_id'] = user.id
+
+        print('[ayload-------]',payload_decoded)
+        print('access new-------',access_token)
 
 
-        # Store tokens in the request context for middleware to handle
+        # Extract token payload information if available
+       
+
+        # Create the payload that includes user info
+        payload1 = PayloadType(
+            username=user.username,
+            exp=payload_decoded.get('exp'),
+            origIat=payload_decoded.get('origIat'),
+            userId=str(user.id)  # Ensure it's a string
+        )
+        print('payload------',payload1)
+
+        # Store tokens in the request context for middleware
         info.context.access_token = access_token
-        info.context.refresh_token = refresh_token.token
+        info.context.refresh_token = refresh_token
+        info.context.user_id = user.id
 
-        # Return a custom success message and tokens
-        return CustomObtainJSONWebToken(
-            access_token=access_token,
-            refresh_token=refresh_token,
+        
+
+     
+        import json
+        return cls(
+            accessToken=access_token,      # Changed to camelCase
+            refreshToken=refresh_token,    # Changed to camelCase
             success=True,
             message="Login successful",
+            payload=payload1
+             
         )
-
-
 
 
 

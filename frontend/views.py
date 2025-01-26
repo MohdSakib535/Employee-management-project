@@ -10,6 +10,7 @@ def consume_registration(request):
 
 def consume_login(request):
     context={}
+    # return render(request,'login2.html',context)
     return render(request,'login.html',context)
 
 
@@ -37,3 +38,16 @@ def update_Role(request,id):
 
 def Attendance_data(request):
     return render(request,'attendance.html')
+
+def Leave_data(request):
+    return render(request,'leave.html')
+
+def Create_manager(request):
+    return render(request,'create_manager.html')
+
+def Assign_Employee(request):
+    return render(request,'assign_employee.html')
+
+
+
+
