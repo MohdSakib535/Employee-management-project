@@ -85,7 +85,6 @@ class UpdateEmployeeData(graphene.Mutation):
     message=graphene.String()
 
     def mutate(self, info, input):
-        # Fetch the employee instance
         employee_instance = get_object_or_404(Employees, id=input.id)
 
         # Handle the user and department separately to ensure foreign keys are correctly set
@@ -100,7 +99,7 @@ class UpdateEmployeeData(graphene.Mutation):
             if field not in ["user", "department"] and value is not None:
                 setattr(employee_instance, field, value)
 
-        # Save the updated instance
+
         employee_instance.save()
 
         message = "Employee updated successfully"
